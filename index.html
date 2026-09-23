@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo de Pagamento Pix</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+      background-color: #f4f4f9;
+    }
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #resultado-pix {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    textarea {
+      width: 80%;
+      max-width: 400px;
+      height: 80px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Faça o seu Pedido</h1>
+  
+  <!-- O botão de pagamento (agora é um botão real, o que evita erros de links) -->
+  <button id="btn-fazer-pedido">Gerar Pagamento Pix</button>
+
+  <!-- Área onde o código Pix vai aparecer no ecrã -->
+  <div id="resultado-pix"></div>
+
+  <script>
+    document.getElementById('btn-fazer-pedido').addEventListener('click', async function() {
+      const botao = document.getElementById('btn-fazer-pedido');
+      botao.innerText = "A gerar Pix...";
+      botao.disabled = true;
+
+      try {
+        // Faz o pedido à função do Netlify que criámos no backend
+        const resposta = await fetch('./netlify/functions/gerar-pix', {
+          method: 'POST'
+        });
+        
+        const dados = await resposta.json();
+        
+        if (dados.sucesso) {
+          // Mostra o código Copia e Cola diretamente na página do site
+          document.getElementById('resultado-pix').innerHTML = `
+            <p><b>Pix gerado com sucesso! Copie o código abaixo:</b></p>
+            <textarea readonly>${dados.copiaECola}</textarea>
+          `;
+        } else {
+          alert("Erro ao gerar o Pix. Verifique os dados no servidor.");
+        }
+      } catch (erro) {
+        console.error("Erro na requisição:", erro);
+        alert("Ocorreu um erro de comunicação.");
+      } finally {
+        botao.innerText = "Gerar Pagamento Pix";
+        botao.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
