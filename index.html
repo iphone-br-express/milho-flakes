@@ -1,82 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exemplo de Pagamento Pix</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 100px;
-      background-color: #f4f4f9;
-    }
-    button {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    #resultado-pix {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-    textarea {
-      width: 80%;
-      max-width: 400px;
-      height: 80px;
-      margin-top: 10px;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Teste PIX</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main class="card">
+    <h1>Pagamento PIX</h1>
+    <p class="muted">Teste de integração direta com a API PlusPix.</p>
 
-  <h1>Faça o seu Pedido</h1>
-  
-  <!-- O botão de pagamento (agora é um botão real, o que evita erros de links) -->
-  <button id="btn-fazer-pedido">Gerar Pagamento Pix</button>
+    <form id="depositForm">
+      <label>Nome do cliente
+        <input id="payerName" required placeholder="Nome completo">
+      </label>
+      <label>CPF
+        <input id="payerDocument" required placeholder="000.000.000-00" inputmode="numeric">
+      </label>
+      <label>Valor (R$)
+        <input id="amount" required type="number" min="0.01" step="0.01" placeholder="10,00">
+      </label>
+      <label>Descrição
+        <input id="description" value="Pagamento PIX">
+      </label>
+      <button type="submit">Gerar PIX</button>
+    </form>
 
-  <!-- Área onde o código Pix vai aparecer no ecrã -->
-  <div id="resultado-pix"></div>
+    <section id="result" class="result hidden">
+      <h2>PIX gerado</h2>
+      <p><b>Status:</b> <span id="status">-</span></p>
+      <p><b>Transação:</b> <span id="transactionId">-</span></p>
+      <img id="qr" class="qr hidden" alt="QR Code PIX">
+      <label>Pix Copia e Cola
+        <textarea id="copyPaste" rows="5" readonly></textarea>
+      </label>
+      <button id="copyBtn" type="button">Copiar Pix</button>
+      <button id="checkBtn" type="button" class="secondary">Consultar pagamento</button>
+    </section>
 
-  <script>
-    document.getElementById('btn-fazer-pedido').addEventListener('click', async function() {
-      const botao = document.getElementById('btn-fazer-pedido');
-      botao.innerText = "A gerar Pix...";
-      botao.disabled = true;
-
-      try {
-        // Faz o pedido à função do Netlify que criámos no backend
-        const resposta = await fetch('./netlify/functions/gerar-pix', {
-          method: 'POST'
-        });
-        
-        const dados = await resposta.json();
-        
-        if (dados.sucesso) {
-          // Mostra o código Copia e Cola diretamente na página do site
-          document.getElementById('resultado-pix').innerHTML = `
-            <p><b>Pix gerado com sucesso! Copie o código abaixo:</b></p>
-            <textarea readonly>${dados.copiaECola}</textarea>
-          `;
-        } else {
-          alert("Erro ao gerar o Pix. Verifique os dados no servidor.");
-        }
-      } catch (erro) {
-        console.error("Erro na requisição:", erro);
-        alert("Ocorreu um erro de comunicação.");
-      } finally {
-        botao.innerText = "Gerar Pagamento Pix";
-        botao.disabled = false;
-      }
-    });
-  </script>
-
+    <p id="message" class="message"></p>
+    <p class="warning">ATENÇÃO: este modo expõe o Client Secret no navegador. Use somente para teste e não publique uma credencial de produção.</p>
+  </main>
+  <script src="app.js"></script>
 </body>
 </html>
