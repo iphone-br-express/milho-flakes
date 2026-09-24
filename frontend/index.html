@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PAYbr PIX</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="container">
+  <header><h1>PAYbr PIX</h1><p>Gerar cobrança, consultar saldo e acompanhar transações.</p></header>
+
+  <section class="card">
+    <h2>Dados do cliente</h2>
+    <div class="grid">
+      <label>Nome do pagador<input id="payerName" placeholder="João Silva"></label>
+      <label>CPF do pagador<input id="payerDocument" inputmode="numeric" placeholder="000.000.000-00"></label>
+      <label>Valor (R$)<input id="amount" type="number" min="0.01" step="0.01" placeholder="50,00"></label>
+      <label>Descrição<input id="description" placeholder="Pagamento #12345"></label>
+    </div>
+    <button id="depositBtn">Gerar PIX</button>
+  </section>
+
+  <section id="pixCard" class="card hidden">
+    <h2>Pagamento PIX</h2>
+    <div id="pixInfo"></div>
+    <img id="qr" class="qr hidden" alt="QR Code PIX">
+    <label>PIX copia e cola<textarea id="copyPaste" readonly></textarea></label>
+    <button id="copyBtn">Copiar código</button>
+    <button id="statusBtn" class="secondary">Consultar status</button>
+  </section>
+
+  <section class="card">
+    <h2>Saldo</h2>
+    <button id="balanceBtn">Consultar saldo</button>
+    <pre id="balance"></pre>
+  </section>
+
+  <section class="card">
+    <h2>Cash-out / Transferência PIX</h2>
+    <div class="grid">
+      <label>Valor<input id="withdrawAmount" type="number" min="0.01" step="0.01"></label>
+      <label>Chave PIX<input id="pixKey" placeholder="CPF, e-mail, telefone ou EVP"></label>
+      <label>Tipo<select id="pixKeyType"><option>CPF</option><option>CNPJ</option><option>EMAIL</option><option>PHONE</option><option>EVP</option></select></label>
+      <label>Descrição<input id="withdrawDescription" placeholder="Pagamento fornecedor"></label>
+    </div>
+    <button id="withdrawBtn">Transferir</button>
+  </section>
+
+  <p id="message"></p>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
