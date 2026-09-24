@@ -1,6 +1,6 @@
 // Troque pela URL pública do seu backend.
 // Exemplo: https://seu-backend.exemplo.com
-const API_BASE_URL = "https://SEU-BACKEND-AQUI";
+const API_BASE_URL = "https://milho-flakes.onrender.com";
 
 let transactionId = null;
 
