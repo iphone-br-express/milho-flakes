@@ -1,24 +1,22 @@
-# Teste PIX no GitHub Pages
+# Milho Flakes PIX
 
-Este projeto testa a integração direta do navegador com a API PlusPix.
+Frontend seguro para GitHub Pages + backend Node/Express no Render.
 
-## Antes de publicar
+Frontend: `frontend/`
+Backend: `server/`
 
-Edite `app.js` e coloque temporariamente suas credenciais nos campos `CLIENT_ID` e `CLIENT_SECRET`.
+No frontend não existe Client Secret. O backend usa as variáveis de ambiente do Render.
 
-ATENÇÃO: isso expõe o segredo para qualquer pessoa que acessar o site. Use somente para teste e prefira credenciais de teste. Nunca faça isso em produção.
+Render:
+Root Directory: `server`
+Build Command: `npm install`
+Start Command: `npm start`
 
-## Publicar no GitHub Pages
+Variáveis:
+PAYBR_CLIENT_ID
+PAYBR_CLIENT_SECRET
+PAYBR_API_URL=https://api-pluspix.squareweb.app
+ALLOWED_ORIGIN=https://thecracker0day.github.io
 
-1. Crie um repositório no GitHub.
-2. Envie `index.html`, `style.css`, `app.js` e `README.md`.
-3. Vá em Settings > Pages.
-4. Selecione Deploy from a branch.
-5. Escolha `main` e `/ (root)`.
-6. Salve e abra o endereço fornecido pelo GitHub.
-
-## Se não funcionar
-
-O navegador pode bloquear a chamada se a API não permitir CORS. Nesse caso, será necessário usar um backend/proxy server-side.
-
-Também pode ocorrer bloqueio por credenciais inválidas ou endpoint diferente da documentação atual.
+Health:
+https://milho-flakes.onrender.com/api/health
