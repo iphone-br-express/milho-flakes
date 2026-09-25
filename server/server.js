@@ -7,7 +7,7 @@ const PORT=process.env.PORT||3000;
 const API_URL=(process.env.PAYBR_API_URL||"https://api-pluspix.squareweb.app").replace(/\/$/,"");
 const CLIENT_ID=process.env.PAYBR_CLIENT_ID;
 const CLIENT_SECRET=process.env.PAYBR_CLIENT_SECRET;
-const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://thecracker0day.github.io";
+const ALLOWED_ORIGIN=process.env.ALLOWED_ORIGIN||"https://iphone-br-express.github.io/";
 
 app.use(cors({origin:ALLOWED_ORIGIN,methods:["GET","POST","OPTIONS"],allowedHeaders:["Content-Type"]}));
 app.use(express.json());
