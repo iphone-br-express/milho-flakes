@@ -1,19 +1,47 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>iPhone Express — Escolha seu iPhone</title>
-<meta name="description" content="iPhone Express — catálogo de iPhones com checkout em etapas e pagamento Pix.">
-<link rel="icon" href="assets/logo.png"><link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Teste PIX</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="topbar"><span>iPhone Express</span><span>Pix • Frete grátis • Checkout seguro</span></div>
-<header class="header"><div class="container nav"><a class="brand" href="index.html"><img src="assets/logo.png" alt="iPhone Express"><span>iPhone <b>EXPRESS</b></span></a><input id="search" class="search" placeholder="Buscar modelo, Pro, Max, armazenamento..."><div class="nav-badge">20% OFF</div></div></header>
-<main class="container">
-<section class="hero"><div class="hero-copy"><span class="discount">OFERTA ONLINE</span><h1>Escolha seu iPhone.<br><span>Receba em casa.</span></h1><p>Veja os modelos, abra a página do produto, confira as imagens e finalize com seus dados de entrega.</p><div class="hero-points"><span>✓ Preço final no checkout</span><span>✓ Frete grátis</span><span>✓ Pix integrado</span></div></div><img class="hero-logo" src="assets/logo.png" alt="iPhone Express"></section>
-<section class="section-head"><div><h2>Escolha seu iPhone</h2><p>Do iPhone X aos modelos mais recentes do catálogo.</p></div><div id="count" class="count"></div></section>
-<div id="products" class="products"><div class="loading">Carregando produtos...</div></div>
-</main>
-<footer class="footer"><div class="container"><strong>iPhone Express</strong><p>Os valores exibidos no catálogo são definidos no servidor e enviados ao gateway no momento do pagamento. Disponibilidade deve ser confirmada antes da venda.</p></div></footer>
-<script src="app.js"></script>
-</body></html>
+  <main class="card">
+    <h1>Pagamento PIX</h1>
+    <p class="muted">Teste de integração direta com a API PlusPix.</p>
+
+    <form id="depositForm">
+      <label>Nome do cliente
+        <input id="payerName" required placeholder="Nome completo">
+      </label>
+      <label>CPF
+        <input id="payerDocument" required placeholder="000.000.000-00" inputmode="numeric">
+      </label>
+      <label>Valor (R$)
+        <input id="amount" required type="number" min="0.01" step="0.01" placeholder="10,00">
+      </label>
+      <label>Descrição
+        <input id="description" value="Pagamento PIX">
+      </label>
+      <button type="submit">Gerar PIX</button>
+    </form>
+
+    <section id="result" class="result hidden">
+      <h2>PIX gerado</h2>
+      <p><b>Status:</b> <span id="status">-</span></p>
+      <p><b>Transação:</b> <span id="transactionId">-</span></p>
+      <img id="qr" class="qr hidden" alt="QR Code PIX">
+      <label>Pix Copia e Cola
+        <textarea id="copyPaste" rows="5" readonly></textarea>
+      </label>
+      <button id="copyBtn" type="button">Copiar Pix</button>
+      <button id="checkBtn" type="button" class="secondary">Consultar pagamento</button>
+    </section>
+
+    <p id="message" class="message"></p>
+    <p class="warning">ATENÇÃO: este modo expõe o Client Secret no navegador. Use somente para teste e não publique uma credencial de produção.</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
