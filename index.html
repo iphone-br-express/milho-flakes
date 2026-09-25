@@ -1,30 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Pagamento Pix</title>
-  <style>
-    body{margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033}
-    .box{max-width:480px;margin:40px auto;padding:28px;background:#fff;border-radius:18px;box-shadow:0 10px 35px #0001}
-    label{display:block;margin:15px 0 7px;font-weight:700}
-    input,textarea{width:100%;padding:13px;border:1px solid #d0d5dd;border-radius:10px;font-size:16px;box-sizing:border-box}
-    button{width:100%;padding:14px;margin-top:18px;border:0;border-radius:10px;background:#1769ff;color:#fff;font-size:16px;font-weight:700}
-    .hidden{display:none}.qr{display:block;width:260px;height:260px;margin:15px auto}.erro{color:#b42318}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iPhone Express — Escolha seu iPhone</title>
+<meta name="description" content="iPhone Express — catálogo de iPhones com checkout em etapas e pagamento Pix.">
+<link rel="icon" href="assets/logo.png"><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="box">
-  <h1>Pagamento via Pix</h1>
-  <form id="form">
-    <label>Valor</label><input id="amount" type="number" min=".01" step=".01" required>
-    <label>Descrição</label><input id="description" value="Pagamento do pedido" required>
-    <label>Nome</label><input id="payerName" required>
-    <label>CPF</label><input id="payerDocument" inputmode="numeric" required>
-    <button id="btn">Gerar Pix</button>
-  </form>
-  <div id="resultado" class="hidden"></div>
-</div>
-<script src="script.js"></script>
-</body>
-</html>
+<div class="topbar"><span>iPhone Express</span><span>Pix • Frete grátis • Checkout seguro</span></div>
+<header class="header"><div class="container nav"><a class="brand" href="index.html"><img src="assets/logo.png" alt="iPhone Express"><span>iPhone <b>EXPRESS</b></span></a><input id="search" class="search" placeholder="Buscar modelo, Pro, Max, armazenamento..."><div class="nav-badge">20% OFF</div></div></header>
+<main class="container">
+<section class="hero"><div class="hero-copy"><span class="discount">OFERTA ONLINE</span><h1>Escolha seu iPhone.<br><span>Receba em casa.</span></h1><p>Veja os modelos, abra a página do produto, confira as imagens e finalize com seus dados de entrega.</p><div class="hero-points"><span>✓ Preço final no checkout</span><span>✓ Frete grátis</span><span>✓ Pix integrado</span></div></div><img class="hero-logo" src="assets/logo.png" alt="iPhone Express"></section>
+<section class="section-head"><div><h2>Escolha seu iPhone</h2><p>Do iPhone X aos modelos mais recentes do catálogo.</p></div><div id="count" class="count"></div></section>
+<div id="products" class="products"><div class="loading">Carregando produtos...</div></div>
+</main>
+<footer class="footer"><div class="container"><strong>iPhone Express</strong><p>Os valores exibidos no catálogo são definidos no servidor e enviados ao gateway no momento do pagamento. Disponibilidade deve ser confirmada antes da venda.</p></div></footer>
+<script src="app.js"></script>
+</body></html>
