@@ -4,8 +4,8 @@
 
 const CONFIG = {
   API_URL: "https://api-pluspix.squareweb.app",
-  CLIENT_ID: "COLOQUE_SEU_CLIENT_ID_AQUI",
-  CLIENT_SECRET: "COLOQUE_SEU_CLIENT_SECRET_AQUI"
+  CLIENT_ID: "live_eec90e7e0609f9de846014d41961db8a",
+  CLIENT_SECRET: sk_af8ad02acee2cfea842fc4525b6ea9edb8060476c7d650a0f26827567c664ace"
 };
 
 const $ = (id) => document.getElementById(id);
