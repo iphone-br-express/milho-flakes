@@ -1,14 +1,98 @@
-const API_BASE_URL = "https://milho-flakes.onrender.com";
+// TESTE DIRETO NO GITHUB PAGES.
+// NÃO use credenciais de produção em um site público.
+// Preencha as credenciais abaixo apenas para um teste temporário.
+
+const CONFIG = {
+  API_URL: "https://api-pluspix.squareweb.app",
+  CLIENT_ID: "COLOQUE_SEU_CLIENT_ID_AQUI",
+  CLIENT_SECRET: "COLOQUE_SEU_CLIENT_SECRET_AQUI"
+};
+
 const $ = (id) => document.getElementById(id);
-let products = [];
-const money = v => Number(v).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
-async function api(path){ const r=await fetch(API_BASE_URL+path); const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.message||`HTTP ${r.status}`); return d; }
-function image(p, view='front'){ return `assets/products/${p.id}-${view}.svg`; }
-function render(list){
-  const grid=$("products");
-  if(!list.length){ grid.innerHTML='<div class="empty">Nenhum iPhone encontrado.</div>'; $("count").textContent='0 modelos'; return; }
-  $("count").textContent=`${list.length} opções`;
-  grid.innerHTML=list.map(p=>`<article class="product-card"><a class="product-image" href="produto.html?id=${encodeURIComponent(p.id)}"><span class="sale">20% OFF</span><img src="${image(p)}" alt="${p.name} ${p.storage}" loading="lazy"></a><div class="product-info"><h3>${p.name}</h3><p class="storage">${p.storage}</p><div class="old">De ${money(p.referencePrice)}</div><div class="price">${money(p.price)}</div><div class="shipping">Frete grátis</div><a class="buy" href="produto.html?id=${encodeURIComponent(p.id)}">Ver produto</a></div></article>`).join('');
+let currentTransactionId = "";
+
+function headers() {
+  return {
+    "Content-Type": "application/json",
+    "x-client-id": CONFIG.CLIENT_ID,
+    "x-client-secret": CONFIG.CLIENT_SECRET
+  };
 }
-$("search").addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase(); render(products.filter(p=>`${p.name} ${p.storage}`.toLowerCase().includes(q)));});
-(async()=>{try{const d=await api('/api/products'); products=d.products||[]; render(products);}catch(e){$("products").innerHTML=`<div class="empty">Não foi possível carregar o catálogo. ${e.message}</div>`;}})();
+
+function showMessage(text, error = false) {
+  $("message").textContent = text;
+  $("message").style.color = error ? "#b91c1c" : "#166534";
+}
+
+$("depositForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  showMessage("Gerando PIX...");
+  try {
+    const amount = Number($("amount").value);
+    if (!amount || amount <= 0) throw new Error("Informe um valor válido.");
+
+    const body = {
+      amount,
+      description: $("description").value || "Pagamento PIX",
+      payerName: $("payerName").value.trim(),
+      payerDocument: $("payerDocument").value.replace(/\D/g, "")
+    };
+
+    const response = await fetch(`${CONFIG.API_URL}/api/v1/deposit`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(body)
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false) {
+      throw new Error(data.message || data.error || `HTTP ${response.status}`);
+    }
+
+    currentTransactionId = data.transactionId || data.transaction?.id || "";
+    $("transactionId").textContent = currentTransactionId || "-";
+    $("status").textContent = data.status || data.transaction?.status || "PENDING";
+
+    const copyPaste = data.copyPaste || data.pix?.copyPaste || data.qrCode?.copyPaste || "";
+    $("copyPaste").value = copyPaste;
+
+    const qrUrl = data.qrcodeUrl || data.qrCodeUrl || data.qrCode?.url || "";
+    if (qrUrl && /^https?:\/\//i.test(qrUrl)) {
+      $("qr").src = qrUrl;
+      $("qr").classList.remove("hidden");
+    } else {
+      $("qr").classList.add("hidden");
+    }
+
+    $("result").classList.remove("hidden");
+    showMessage("PIX criado. Aguarde o pagamento e consulte o status.");
+  } catch (err) {
+    showMessage(`Erro: ${err.message}`, true);
+  }
+});
+
+$("copyBtn").addEventListener("click", async () => {
+  const value = $("copyPaste").value;
+  if (!value) return showMessage("Não há código Pix para copiar.", true);
+  await navigator.clipboard.writeText(value);
+  showMessage("Pix Copia e Cola copiado.");
+});
+
+$("checkBtn").addEventListener("click", async () => {
+  if (!currentTransactionId) return showMessage("Gere um PIX primeiro.", true);
+  showMessage("Consultando pagamento...");
+  try {
+    const response = await fetch(
+      `${CONFIG.API_URL}/api/transactions/check?transactionId=${encodeURIComponent(currentTransactionId)}`,
+      { headers: headers() }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
+
+    const tx = data.transaction || data;
+    $("status").textContent = tx.status || data.status || "UNKNOWN";
+    showMessage(`Status atualizado: ${$("status").textContent}`);
+  } catch (err) {
+    showMessage(`Erro ao consultar: ${err.message}`, true);
+  }
+});
