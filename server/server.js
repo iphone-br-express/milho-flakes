@@ -9,6 +9,45 @@ const CLIENT_ID = process.env.PAYBR_CLIENT_ID;
 const CLIENT_SECRET = process.env.PAYBR_CLIENT_SECRET;
 const ALLOWED_ORIGIN = (process.env.ALLOWED_ORIGIN || "https://iphone-br-express.github.io").replace(/\/$/, "");
 
+
+const COLOR_OPTIONS = {
+  "iPhone X": ["Cinza-espacial", "Prateado"],
+  "iPhone XR": ["Preto", "Branco", "Azul", "Amarelo", "Coral", "(PRODUCT)RED"],
+  "iPhone XS": ["Cinza-espacial", "Prateado", "Dourado"],
+  "iPhone XS Max": ["Cinza-espacial", "Prateado", "Dourado"],
+  "iPhone 11": ["Preto", "Branco", "Verde", "Amarelo", "Roxo", "(PRODUCT)RED"],
+  "iPhone 11 Pro": ["Verde-meia-noite", "Prateado", "Cinza-espacial", "Dourado"],
+  "iPhone 11 Pro Max": ["Verde-meia-noite", "Prateado", "Cinza-espacial", "Dourado"],
+  "iPhone 12": ["Preto", "Branco", "Azul", "Verde", "Roxo", "(PRODUCT)RED"],
+  "iPhone 12 mini": ["Preto", "Branco", "Azul", "Verde", "Roxo", "(PRODUCT)RED"],
+  "iPhone 12 Pro": ["Grafite", "Prateado", "Dourado", "Azul-pacífico"],
+  "iPhone 12 Pro Max": ["Grafite", "Prateado", "Dourado", "Azul-pacífico"],
+  "iPhone 13": ["Meia-noite", "Estelar", "Azul", "Rosa", "Verde", "(PRODUCT)RED"],
+  "iPhone 13 mini": ["Meia-noite", "Estelar", "Azul", "Rosa", "Verde", "(PRODUCT)RED"],
+  "iPhone 13 Pro": ["Grafite", "Dourado", "Prateado", "Azul-serra", "Verde-alpino"],
+  "iPhone 13 Pro Max": ["Grafite", "Dourado", "Prateado", "Azul-serra", "Verde-alpino"],
+  "iPhone 14": ["Meia-noite", "Estelar", "Azul", "Roxo", "(PRODUCT)RED"],
+  "iPhone 14 Plus": ["Meia-noite", "Estelar", "Azul", "Roxo", "(PRODUCT)RED"],
+  "iPhone 14 Pro": ["Preto-espacial", "Prateado", "Dourado", "Roxo-profundo"],
+  "iPhone 14 Pro Max": ["Preto-espacial", "Prateado", "Dourado", "Roxo-profundo"],
+  "iPhone 15": ["Preto", "Azul", "Verde", "Amarelo", "Rosa"],
+  "iPhone 15 Plus": ["Preto", "Azul", "Verde", "Amarelo", "Rosa"],
+  "iPhone 15 Pro": ["Titânio preto", "Titânio branco", "Titânio azul", "Titânio natural"],
+  "iPhone 15 Pro Max": ["Titânio preto", "Titânio branco", "Titânio azul", "Titânio natural"],
+  "iPhone 16": ["Preto", "Branco", "Rosa", "Verde-azulado", "Ultramarino"],
+  "iPhone 16 Plus": ["Preto", "Branco", "Rosa", "Verde-azulado", "Ultramarino"],
+  "iPhone 16 Pro": ["Titânio preto", "Titânio branco", "Titânio natural", "Titânio deserto"],
+  "iPhone 16 Pro Max": ["Titânio preto", "Titânio branco", "Titânio natural", "Titânio deserto"],
+  "iPhone 17e": ["Preto", "Branco"],
+  "iPhone 17": ["Preto", "Branco", "Azul", "Verde", "Rosa"],
+  "iPhone Air": ["Preto", "Branco", "Azul", "Dourado"],
+  "iPhone 17 Pro": ["Preto", "Prateado", "Azul", "Dourado"],
+  "iPhone 17 Pro Max": ["Preto", "Prateado", "Azul", "Dourado"],
+  "iPhone 18 Pro": ["Preto", "Prateado", "Azul", "Dourado"],
+  "iPhone 18 Pro Max": ["Preto", "Prateado", "Azul", "Dourado"]
+};
+function colorsFor(product){return COLOR_OPTIONS[product.name] || ["Preto","Branco","Azul","Dourado"];}
+
 const PRODUCTS = [
   {
     "id": "iphone-x-64",
@@ -371,7 +410,7 @@ app.get("/api/products", (req, res) => {
   res.json({
     success: true,
     discount: 30,
-    products: PRODUCTS
+    products: PRODUCTS.map(p => ({ ...p, colors: colorsFor(p) }))
   });
 });
 
@@ -379,7 +418,7 @@ app.get("/api/products", (req, res) => {
 // O valor enviado pelo navegador é ignorado.
 app.post("/api/deposit", async (req, res) => {
   try {
-    const { productId, payerName, payerDocument, email, phone, shipping } = req.body;
+    const { productId, payerName, payerDocument, email, phone, shipping, color } = req.body;
 
     const product = PRODUCTS.find((item) => item.id === String(productId));
     if (!product) {
@@ -401,7 +440,13 @@ app.post("/api/deposit", async (req, res) => {
       });
     }
 
-    const description = `Compra - ${product.name} ${product.storage}`;
+    const availableColors = colorsFor(product);
+    const selectedColor = String(color || "").trim();
+    if (!selectedColor || !availableColors.includes(selectedColor)) {
+      return res.status(400).json({ success: false, message: "Selecione uma cor disponível para este aparelho." });
+    }
+
+    const description = `Compra - ${product.name} ${product.storage} - Cor: ${selectedColor}`;
 
     const data = await pluspix("/api/v1/deposit", {
       method: "POST",
@@ -415,9 +460,9 @@ app.post("/api/deposit", async (req, res) => {
 
     res.json({
       ...data,
-      storeProduct: product,
+      storeProduct: { ...product, colors: availableColors, selectedColor },
       chargedAmount: Number(product.price.toFixed(2)),
-      customer: { name: String(payerName).trim(), email: String(email).trim(), phone: phone || "", shipping: shipping || {} }
+      customer: { name: String(payerName).trim(), email: String(email).trim(), phone: phone || "", color: selectedColor, shipping: shipping || {} }
     });
   } catch (e) {
     handleError(res, e);
