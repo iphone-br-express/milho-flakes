@@ -1,366 +1,578 @@
-const $ = id => document.getElementById(id);
+(() => {
 
-const money = v => Number(v).toLocaleString("pt-BR", {
-  style: "currency",
-  currency: "BRL"
-});
+  const $ = (id) => document.getElementById(id);
 
-const productId = new URLSearchParams(location.search).get("id");
+  const money = (v) =>
+    Number(v).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 
-function fallbackProduct() {
-  return (window.LOCAL_PRODUCTS || []).find(x => x.id === productId);
-}
+  const productId =
+    new URLSearchParams(location.search).get("id");
 
-function productImage(p) {
-  return (window.REAL_PHOTOS && window.REAL_PHOTOS[p.id])
-    || `assets/products/${p.id}-front.svg`;
-}
+  function fallbackProduct() {
+    return (window.LOCAL_PRODUCTS || [])
+      .find((x) => x.id === productId);
+  }
 
-function gallery(p) {
-  return (window.REAL_GALLERIES && window.REAL_GALLERIES[p.id])
-    || [productImage(p)];
-}
-
-function colors(p) {
-  return (window.FAMILY_COLORS && window.FAMILY_COLORS[p.id])
-    || ["Preto", "Branco", "Azul"];
-}
-
-function colorHex(c) {
-  const x = c.toLowerCase();
-
-  if (x.includes("rosa")) return "#f3b5c7";
-  if (x.includes("azul")) return "#5c82c9";
-  if (x.includes("verde")) return "#8eaf9c";
-  if (x.includes("roxo") || x.includes("lavanda")) return "#9c8bc4";
-  if (x.includes("amarelo") || x.includes("dourado")) return "#d9bb67";
-  if (
-    x.includes("branco") ||
-    x.includes("prateado") ||
-    x.includes("estelar") ||
-    x.includes("glacial")
-  ) return "#f4f4f0";
-  if (x.includes("vermelho") || x.includes("red")) return "#c8102e";
-  if (
-    x.includes("preto") ||
-    x.includes("grafite") ||
-    x.includes("espacial")
-  ) return "#222";
-  if (x.includes("laranja")) return "#e56a22";
-  if (x.includes("bordô")) return "#6b2737";
-
-  return "#888";
-}
-
-function esc(v) {
-  return String(v).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[c]));
-}
-
-async function api(path) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 6000);
-
-  try {
-    const response = await fetch(
-      window.API_BASE_URL + path,
-      {
-        cache: "no-store",
-        signal: controller.signal
-      }
+  function productImage(p) {
+    return (
+      (window.REAL_PHOTOS &&
+        window.REAL_PHOTOS[p.id]) ||
+      `assets/products/${p.id}-front.svg`
     );
+  }
 
-    const data = await response.json().catch(() => ({}));
+  function gallery(p) {
+    return (
+      (window.REAL_GALLERIES &&
+        window.REAL_GALLERIES[p.id]) ||
+      [productImage(p)]
+    );
+  }
 
-    if (!response.ok) {
-      throw new Error(
-        data.message || `HTTP ${response.status}`
+  function colors(p) {
+    return (
+      (window.FAMILY_COLORS &&
+        window.FAMILY_COLORS[p.id]) ||
+      ["Preto", "Branco", "Azul"]
+    );
+  }
+
+  function colorHex(c) {
+    const x = String(c).toLowerCase();
+
+    if (x.includes("rosa")) return "#f3b5c7";
+    if (x.includes("azul")) return "#5c82c9";
+    if (x.includes("verde")) return "#8eaf9c";
+    if (x.includes("roxo") || x.includes("lavanda")) {
+      return "#9c8bc4";
+    }
+    if (
+      x.includes("amarelo") ||
+      x.includes("dourado")
+    ) {
+      return "#d9bb67";
+    }
+    if (
+      x.includes("branco") ||
+      x.includes("prateado") ||
+      x.includes("estelar") ||
+      x.includes("glacial")
+    ) {
+      return "#f4f4f0";
+    }
+    if (
+      x.includes("vermelho") ||
+      x.includes("red")
+    ) {
+      return "#c8102e";
+    }
+    if (
+      x.includes("preto") ||
+      x.includes("grafite") ||
+      x.includes("espacial")
+    ) {
+      return "#222";
+    }
+    if (x.includes("laranja")) return "#e56a22";
+    if (x.includes("bordô")) return "#6b2737";
+
+    return "#888";
+  }
+
+  function esc(v) {
+    return String(v).replace(
+      /[&<>"']/g,
+      (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[c]
+    );
+  }
+
+  async function api(path) {
+
+    const controller =
+      new AbortController();
+
+    const timer = setTimeout(() => {
+      controller.abort();
+    }, 6000);
+
+    try {
+
+      const response = await fetch(
+        `${window.API_BASE_URL}${path}`,
+        {
+          cache: "no-store",
+          signal: controller.signal
+        }
       );
+
+      const data =
+        await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          `HTTP ${response.status}`
+        );
+      }
+
+      return data;
+
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function renderProduct(p) {
+
+    const detail = $("detail");
+
+    if (!detail || !p) {
+      return;
     }
 
-    return data;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+    const images =
+      gallery(p)
+        .filter(Boolean)
+        .slice(0, 3);
 
-function renderProduct(p) {
-  const detail = $("detail");
+    const colorList = colors(p);
 
-  if (!detail) return;
+    const fallback =
+      `assets/products/${p.id}-front.svg`;
 
-  const images = (gallery(p) || [])
-    .filter(Boolean)
-    .slice(0, 3);
+    const colorPhotos =
+      (window.COLOR_PHOTOS &&
+        window.COLOR_PHOTOS[p.id]) || {};
 
-  const colorList = colors(p);
+    let selectedColor =
+      colorList[0] || "Preto";
 
-  const fallback = `assets/products/${p.id}-front.svg`;
+    const firstImage =
+      images[0] || fallback;
 
-  const colorPhotos =
-    (window.COLOR_PHOTOS && window.COLOR_PHOTOS[p.id]) || {};
+    detail.innerHTML = `
 
-  let selectedColor = colorList[0] || "Preto";
+      <div class="gallery">
 
-  const firstImage = images[0] || fallback;
+        <div class="main-photo">
 
-  detail.innerHTML = `
-    <div class="gallery">
+          <span class="sale big">
+            30% OFF
+          </span>
 
-      <div class="main-photo">
-        <span class="sale big">30% OFF</span>
-
-        <img
-          id="mainImage"
-          src="${esc(firstImage)}"
-          alt="${esc(p.name)} ${esc(p.storage)}"
-        >
-      </div>
-
-      <div class="photo-source">
-        Fotos reais/de referência do modelo.
-        A disponibilidade da cor é confirmada antes do envio.
-      </div>
-
-      <div class="thumbs">
-        ${images.map((src, index) => `
-          <button
-            class="photo-thumb ${index === 0 ? "active" : ""}"
-            data-src="${esc(src)}"
-            type="button"
+          <img
+            id="mainImage"
+            src="${esc(firstImage)}"
+            alt="${esc(p.name)} ${esc(p.storage)}"
           >
-            <span>
-              ${["Foto principal", "Traseira", "Outra vista"][index]}
-            </span>
 
-            <img
-              src="${esc(src)}"
-              alt="${esc(p.name)}"
-            >
-          </button>
-        `).join("")}
-      </div>
+        </div>
 
-    </div>
+        <div class="photo-source">
+          Fotos reais/de referência do modelo.
+          A disponibilidade da cor é confirmada antes do envio.
+        </div>
 
-    <section class="product-detail">
+        <div class="thumbs">
 
-      <span class="eyebrow">
-        OFERTA iPHONE EXPRESS
-      </span>
-
-      <h1>${esc(p.name)}</h1>
-
-      <p class="storage large">
-        ${esc(p.storage)}
-      </p>
-
-      <div class="trust-badges">
-        <span>✓ NOVO</span>
-        <span>✓ TESTADO</span>
-        <span>✓ 30% OFF</span>
-      </div>
-
-      <div class="old">
-        Referência de mercado:
-        ${money(p.referencePrice)}
-      </div>
-
-      <div class="detail-price">
-        ${money(p.price)}
-      </div>
-
-      <div class="color-box">
-
-        <label>
-          <strong>Escolha a cor</strong>
-          <span>Conforme disponibilidade</span>
-        </label>
-
-        <div class="color-options" id="colorOptions">
-
-          ${colorList.map((color, index) => `
+          ${images.map((src, index) => `
             <button
+              class="photo-thumb ${index === 0 ? "active" : ""}"
+              data-src="${esc(src)}"
               type="button"
-              class="color-option ${index === 0 ? "selected" : ""}"
-              data-color="${esc(color)}"
             >
-              <i style="background:${colorHex(color)}"></i>
-              <span>${esc(color)}</span>
+
+              <span>
+                ${
+                  [
+                    "Foto principal",
+                    "Traseira",
+                    "Outra vista"
+                  ][index]
+                }
+              </span>
+
+              <img
+                src="${esc(src)}"
+                alt="${esc(p.name)}"
+              >
+
             </button>
           `).join("")}
 
         </div>
 
-        <div class="selected-color">
-          <span>Cor selecionada</span>
+      </div>
 
-          <strong id="selectedColor">
-            ${esc(selectedColor)}
-          </strong>
+      <section class="product-detail">
+
+        <span class="eyebrow">
+          OFERTA iPHONE EXPRESS
+        </span>
+
+        <h1>
+          ${esc(p.name)}
+        </h1>
+
+        <p class="storage large">
+          ${esc(p.storage)}
+        </p>
+
+        <div class="trust-badges">
+
+          <span>✓ NOVO</span>
+          <span>✓ TESTADO</span>
+          <span>✓ 30% OFF</span>
+
         </div>
 
-        <small>
-          A cor marcada acompanha o pedido.
-          A disponibilidade é confirmada antes do envio.
-        </small>
+        <div class="old">
+          Referência de mercado:
+          ${money(p.referencePrice)}
+        </div>
 
-      </div>
+        <div class="detail-price">
+          ${money(p.price)}
+        </div>
 
-      <div class="included">
-        <span>✓ Frete grátis</span>
-        <span>✓ Entrega Full — até 7 dias úteis</span>
-        <span>✓ Produto novo e testado</span>
-        <span>✓ Pagamento via Pix</span>
-      </div>
+        <div class="color-box">
 
-      <p class="desc">
-        Aparelho novo e testado.
-        Escolha a cor desejada conforme disponibilidade
-        e informe os dados de entrega para continuar.
-      </p>
+          <label>
 
-      <a
-        class="buy large-buy"
-        id="continueBuy"
-        href="checkout.html?id=${encodeURIComponent(p.id)}&color=${encodeURIComponent(selectedColor)}"
-      >
-        Continuar para dados de entrega →
-      </a>
+            <strong>
+              Escolha a cor
+            </strong>
 
-      <div class="delivery-note">
-        <strong>🚚 Entrega Full</strong>
-        <br>
-        Prazo informado na loja:
-        <strong>até 7 dias úteis</strong>.
-      </div>
+            <span>
+              Conforme disponibilidade
+            </span>
 
-      <div class="secure">
-        🔒 O preço do Pix é conferido pelo servidor
-        e não é alterado pelo navegador.
-      </div>
+          </label>
 
-    </section>
-  `;
+          <div
+            class="color-options"
+            id="colorOptions"
+          >
 
-  const mainImage = $("mainImage");
+            ${colorList.map((color, index) => `
 
-  document.querySelectorAll(".photo-thumb").forEach(button => {
-    button.addEventListener("click", () => {
+              <button
+                type="button"
+                class="color-option ${
+                  index === 0 ? "selected" : ""
+                }"
+                data-color="${esc(color)}"
+              >
 
-      document.querySelectorAll(".photo-thumb")
-        .forEach(x => x.classList.remove("active"));
+                <i
+                  style="background:${colorHex(color)}"
+                ></i>
 
-      button.classList.add("active");
+                <span>
+                  ${esc(color)}
+                </span>
 
-      mainImage.src = button.dataset.src;
-    });
-  });
+              </button>
 
-  document.querySelectorAll(".color-option").forEach(button => {
-    button.addEventListener("click", () => {
+            `).join("")}
 
-      document.querySelectorAll(".color-option")
-        .forEach(x => x.classList.remove("selected"));
+          </div>
 
-      button.classList.add("selected");
+          <div class="selected-color">
 
-      selectedColor = button.dataset.color;
+            <span>
+              Cor selecionada
+            </span>
 
-      const selectedElement = $("selectedColor");
+            <strong id="selectedColor">
+              ${esc(selectedColor)}
+            </strong>
 
-      if (selectedElement) {
-        selectedElement.textContent = selectedColor;
-      }
+          </div>
 
-      if (colorPhotos[selectedColor]) {
-        mainImage.src = colorPhotos[selectedColor];
+          <small>
+            A cor marcada acompanha o pedido.
+            A disponibilidade é confirmada antes do envio.
+          </small>
 
-        document.querySelectorAll(".photo-thumb")
-          .forEach(x => x.classList.remove("active"));
-      }
+        </div>
 
-      const buyButton = $("continueBuy");
+        <div class="included">
 
-      if (buyButton) {
-        buyButton.href =
-          `checkout.html?id=${encodeURIComponent(p.id)}&color=${encodeURIComponent(selectedColor)}`;
-      }
-    });
-  });
+          <span>✓ Frete grátis</span>
+          <span>✓ Entrega Full — até 7 dias úteis</span>
+          <span>✓ Produto novo e testado</span>
+          <span>✓ Pagamento via Pix</span>
 
-  const continueBuy = $("continueBuy");
+        </div>
 
-  if (continueBuy) {
-    continueBuy.addEventListener("click", event => {
-      event.preventDefault();
+        <p class="desc">
 
-      location.href =
-        `checkout.html?id=${encodeURIComponent(p.id)}&color=${encodeURIComponent(selectedColor)}`;
-    });
-  }
+          Aparelho novo e testado.
+          Escolha a cor desejada conforme disponibilidade
+          e informe os dados de entrega para continuar.
 
-  if (mainImage) {
-    mainImage.addEventListener("error", () => {
-      if (!mainImage.src.endsWith(fallback)) {
-        mainImage.src = fallback;
-      }
-    });
-  }
-}
+        </p>
 
-(function init() {
-  try {
-    let product = fallbackProduct();
+        <a
+          class="buy large-buy"
+          id="continueBuy"
+          href="checkout.html?id=${encodeURIComponent(
+            p.id
+          )}&color=${encodeURIComponent(
+            selectedColor
+          )}"
+        >
+          Continuar para dados de entrega →
+        </a>
 
-    if (!product) {
-      throw new Error("Produto não encontrado.");
+        <div class="delivery-note">
+
+          <strong>
+            🚚 Entrega Full
+          </strong>
+
+          <br>
+
+          Prazo informado na loja:
+          <strong>
+            até 7 dias úteis
+          </strong>
+
+        </div>
+
+        <div class="secure">
+
+          🔒 O preço do Pix é conferido pelo servidor
+          e não é alterado pelo navegador.
+
+        </div>
+
+      </section>
+    `;
+
+    const mainImage =
+      $("mainImage");
+
+    document
+      .querySelectorAll(".photo-thumb")
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(".photo-thumb")
+              .forEach((x) =>
+                x.classList.remove("active")
+              );
+
+            button.classList.add("active");
+
+            if (mainImage) {
+              mainImage.src =
+                button.dataset.src;
+            }
+
+          }
+        );
+
+      });
+
+    document
+      .querySelectorAll(".color-option")
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(".color-option")
+              .forEach((x) =>
+                x.classList.remove("selected")
+              );
+
+            button.classList.add("selected");
+
+            selectedColor =
+              button.dataset.color;
+
+            const selectedElement =
+              $("selectedColor");
+
+            if (selectedElement) {
+              selectedElement.textContent =
+                selectedColor;
+            }
+
+            if (
+              colorPhotos[selectedColor] &&
+              mainImage
+            ) {
+
+              mainImage.src =
+                colorPhotos[selectedColor];
+
+              document
+                .querySelectorAll(".photo-thumb")
+                .forEach((x) =>
+                  x.classList.remove("active")
+                );
+
+            }
+
+            const buyButton =
+              $("continueBuy");
+
+            if (buyButton) {
+
+              buyButton.href =
+                `checkout.html?id=${encodeURIComponent(
+                  p.id
+                )}&color=${encodeURIComponent(
+                  selectedColor
+                )}`;
+
+            }
+
+          }
+        );
+
+      });
+
+    const continueBuy =
+      $("continueBuy");
+
+    if (continueBuy) {
+
+      continueBuy.addEventListener(
+        "click",
+        (event) => {
+
+          event.preventDefault();
+
+          location.href =
+            `checkout.html?id=${encodeURIComponent(
+              p.id
+            )}&color=${encodeURIComponent(
+              selectedColor
+            )}`;
+
+        }
+      );
+
     }
 
-    renderProduct(product);
+    if (mainImage) {
 
-    api("/api/products")
-      .then(data => {
+      mainImage.addEventListener(
+        "error",
+        () => {
+
+          if (
+            !mainImage.src.endsWith(
+              fallback
+            )
+          ) {
+            mainImage.src =
+              fallback;
+          }
+
+        }
+      );
+
+    }
+
+  }
+
+  async function init() {
+
+    const detail =
+      $("detail");
+
+    try {
+
+      const product =
+        fallbackProduct();
+
+      if (!product) {
+
+        throw new Error(
+          "Produto não encontrado."
+        );
+
+      }
+
+      renderProduct(product);
+
+      try {
+
+        const data =
+          await api("/api/products");
+
         const freshProduct =
-          (data.products || []).find(
-            item => item.id === productId
-          );
+          (data.products || [])
+            .find(
+              (item) =>
+                item.id === productId
+            );
 
         if (freshProduct) {
           renderProduct(freshProduct);
         }
-      })
-      .catch(() => {
-        // Mantém o produto local se a API estiver indisponível.
-      });
 
-  } catch (error) {
+      } catch (error) {
 
-    const detail = $("detail");
+        console.warn(
+          "API de produtos indisponível. Usando catálogo local."
+        );
 
-    if (detail) {
-      detail.innerHTML = `
-        <div class="empty">
+      }
 
-          <h2>
-            Não foi possível carregar o produto.
-          </h2>
+    } catch (error) {
 
-          <p>
-            ${esc(error.message)}
-          </p>
+      if (detail) {
 
-          <a class="buy" href="index.html">
-            Voltar à loja
-          </a>
+        detail.innerHTML = `
 
-        </div>
-      `;
+          <div class="empty">
+
+            <h2>
+              Não foi possível carregar o produto.
+            </h2>
+
+            <p>
+              ${esc(error.message)}
+            </p>
+
+            <a
+              class="buy"
+              href="index.html"
+            >
+              Voltar à loja
+            </a>
+
+          </div>
+
+        `;
+
+      }
+
     }
+
   }
+
+  init();
+
 })();
