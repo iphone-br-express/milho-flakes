@@ -1,76 +1,59 @@
-```js
-window.API_BASE_URL = "https://milho-flakes.onrender.com";
+(() => {
+  window.API_BASE_URL = "https://milho-flakes.onrender.com";
 
-const money = v =>
-  Number(v).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
+  const money = (v) =>
+    Number(v).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
 
-/* =========================================================
-   PRODUTOS
-========================================================= */
+  let products = Array.isArray(window.LOCAL_PRODUCTS)
+    ? window.LOCAL_PRODUCTS
+    : [];
 
-let products = Array.isArray(window.LOCAL_PRODUCTS)
-  ? window.LOCAL_PRODUCTS
-  : [];
-
-/* =========================================================
-   IMAGENS
-========================================================= */
-
-function image(p) {
-  return `assets/products/${p.id}-front.svg`;
-}
-
-function productImage(p) {
-  return (
-    (window.REAL_PHOTOS && window.REAL_PHOTOS[p.id]) ||
-    image(p)
-  );
-}
-
-function galleryFor(p) {
-  return (
-    (window.REAL_GALLERIES &&
-      window.REAL_GALLERIES[p.id]) ||
-    [productImage(p)]
-  );
-}
-
-/* =========================================================
-   RENDERIZAÇÃO DO CATÁLOGO
-========================================================= */
-
-function render(list) {
-  const grid = document.getElementById("products");
-  const count = document.getElementById("count");
-
-  /*
-   * Se estamos na página produto.html,
-   * não existe catálogo para renderizar.
-   */
-  if (!grid) {
-    return;
+  function image(p) {
+    return `assets/products/${p.id}-front.svg`;
   }
 
-  if (!list.length) {
-    grid.innerHTML =
-      '<div class="empty">Nenhum iPhone encontrado.</div>';
+  function productImage(p) {
+    return (
+      (window.REAL_PHOTOS && window.REAL_PHOTOS[p.id]) ||
+      image(p)
+    );
+  }
 
-    if (count) {
-      count.textContent = "0 modelos";
+  function galleryFor(p) {
+    return (
+      (window.REAL_GALLERIES &&
+        window.REAL_GALLERIES[p.id]) ||
+      [productImage(p)]
+    );
+  }
+
+  function render(list) {
+    const grid = document.getElementById("products");
+    const count = document.getElementById("count");
+
+    if (!grid) {
+      return;
     }
 
-    return;
-  }
+    if (!Array.isArray(list) || !list.length) {
+      grid.innerHTML =
+        '<div class="empty">Nenhum iPhone encontrado.</div>';
 
-  if (count) {
-    count.textContent = `${list.length} opções`;
-  }
+      if (count) {
+        count.textContent = "0 modelos";
+      }
 
-  grid.innerHTML = list
-    .map(p => {
+      return;
+    }
+
+    if (count) {
+      count.textContent = `${list.length} opções`;
+    }
+
+    grid.innerHTML = list.map((p) => {
       const g = galleryFor(p);
 
       return `
@@ -116,19 +99,14 @@ function render(list) {
             </div>
 
             <div class="mini-gallery">
-              ${g
-                .slice(0, 3)
-                .map(
-                  src => `
-                    <img
-                      src="${src}"
-                      alt="${p.name}"
-                      loading="lazy"
-                      onerror="this.style.display='none'"
-                    >
-                  `
-                )
-                .join("")}
+              ${g.slice(0, 3).map((src) => `
+                <img
+                  src="${src}"
+                  alt="${p.name}"
+                  loading="lazy"
+                  onerror="this.style.display='none'"
+                >
+              `).join("")}
             </div>
 
             <a
@@ -141,105 +119,84 @@ function render(list) {
           </div>
         </article>
       `;
-    })
-    .join("");
-}
-
-/* =========================================================
-   PESQUISA
-========================================================= */
-
-function setupSearch() {
-  const search = document.getElementById("search");
-
-  /*
-   * Na página produto.html não existe #search.
-   * Portanto simplesmente não fazemos nada.
-   */
-  if (!search) {
-    return;
+    }).join("");
   }
 
-  search.addEventListener("input", e => {
-    const q = e.target.value
-      .trim()
-      .toLowerCase();
+  function setupSearch() {
+    const search = document.getElementById("search");
 
-    const filtered = products.filter(p =>
-      `${p.name} ${p.storage}`
-        .toLowerCase()
-        .includes(q)
-    );
+    if (!search) {
+      return;
+    }
 
-    render(filtered);
-  });
-}
+    search.addEventListener("input", (e) => {
+      const q = e.target.value
+        .trim()
+        .toLowerCase();
 
-/* =========================================================
-   CARREGAR PRODUTOS DO SERVIDOR
-========================================================= */
-
-async function loadCatalog() {
-  /*
-   * Se não existe catálogo nesta página,
-   * não fazemos requisição desnecessária.
-   */
-  if (!document.getElementById("products")) {
-    return;
-  }
-
-  const ctl = new AbortController();
-
-  const timer = setTimeout(() => {
-    ctl.abort();
-  }, 6000);
-
-  try {
-    const r = await fetch(
-      `${window.API_BASE_URL}/api/products`,
-      {
-        cache: "no-store",
-        signal: ctl.signal
-      }
-    );
-
-    const d = await r.json().catch(() => ({}));
-
-    if (!r.ok) {
-      throw new Error(
-        d.message || `HTTP ${r.status}`
+      const filtered = products.filter((p) =>
+        `${p.name} ${p.storage}`
+          .toLowerCase()
+          .includes(q)
       );
-    }
 
-    if (
-      Array.isArray(d.products) &&
-      d.products.length
-    ) {
-      products = d.products;
-    }
-
-  } catch (e) {
-
-    const status =
-      document.getElementById("catalogStatus");
-
-    if (status) {
-      status.textContent =
-        "Catálogo local carregado. O servidor de pagamento continua conectado.";
-    }
-
-  } finally {
-
-    clearTimeout(timer);
-
-    render(products);
+      render(filtered);
+    });
   }
-}
 
-/* =========================================================
-   INICIALIZAÇÃO
-========================================================= */
+  async function loadCatalog() {
+    const grid = document.getElementById("products");
 
-setupSearch();
-loadCatalog();
-```
+    if (!grid) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timer = setTimeout(() => {
+      controller.abort();
+    }, 6000);
+
+    try {
+      const response = await fetch(
+        `${window.API_BASE_URL}/api/products`,
+        {
+          cache: "no-store",
+          signal: controller.signal
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || `HTTP ${response.status}`
+        );
+      }
+
+      if (
+        Array.isArray(data.products) &&
+        data.products.length
+      ) {
+        products = data.products;
+      }
+
+    } catch (error) {
+      const status =
+        document.getElementById("catalogStatus");
+
+      if (status) {
+        status.textContent =
+          "Catálogo local carregado.";
+      }
+
+    } finally {
+      clearTimeout(timer);
+      render(products);
+    }
+  }
+
+  setupSearch();
+  loadCatalog();
+
+})();
