@@ -4,32 +4,34 @@ const money=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'
 const id=new URLSearchParams(location.search).get('id');
 function fallbackProduct(){return (window.LOCAL_PRODUCTS||[]).find(x=>x.id===id);}
 function productImage(p){return (window.REAL_PHOTOS&&window.REAL_PHOTOS[p.id])||`assets/products/${p.id}-front.svg`;}
+function gallery(p){return (window.REAL_GALLERIES&&window.REAL_GALLERIES[p.id])||[productImage(p),productImage(p),productImage(p)];}
+function colors(p){return (window.FAMILY_COLORS&&window.FAMILY_COLORS[p.id])||['Preto','Branco','Azul'];}
 async function api(path){const r=await fetch(API_BASE_URL+path,{cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||`HTTP ${r.status}`);return d;}
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function colorHex(c){const x=c.toLowerCase();if(x.includes('rosa'))return '#f3b5c7';if(x.includes('azul'))return '#5c82c9';if(x.includes('verde'))return '#8eaf9c';if(x.includes('roxo')||x.includes('lavanda'))return '#9c8bc4';if(x.includes('amarelo')||x.includes('dourado'))return '#d9bb67';if(x.includes('branco')||x.includes('prateado')||x.includes('estelar'))return '#f4f4f0';if(x.includes('vermelho')||x.includes('red'))return '#c8102e';if(x.includes('preto')||x.includes('grafite')||x.includes('espacial'))return '#222';if(x.includes('laranja'))return '#e56a22';if(x.includes('bordô'))return '#6b2737';if(x.includes('glacial'))return '#cbd9e5';return '#888';}
 (async()=>{try{
-  let p=fallbackProduct();
-  try{const d=await api('/api/products');p=(d.products||[]).find(x=>x.id===id)||p;}catch{}
-  if(!p)throw new Error('Produto não encontrado.');
-  const base=`assets/products/${p.id}`;const real=productImage(p);const colors=p.colors||['Preto','Branco','Azul','Dourado'];
-  $("detail").innerHTML=`
-  <div class="gallery">
-    <div class="main-photo"><span class="sale big">30% OFF</span><img id="mainImage" src="${real}" alt="${esc(p.name)} ${esc(p.storage)}" onerror="this.onerror=null;this.src='${base}-front.svg'"></div>
-    <div class="thumbs">
-      <button class="photo-thumb active" data-src="${real}"><span>Frente</span><img src="${real}" alt="Frente do ${esc(p.name)}" onerror="this.onerror=null;this.src='${base}-front.svg'"></button>
-      <button class="photo-thumb" data-view="back"><span>Traseira</span><img src="${base}-back.svg" alt="Traseira do ${esc(p.name)}"></button>
-      <button class="photo-thumb" data-view="side"><span>Lateral</span><img src="${base}-side.svg" alt="Lateral do ${esc(p.name)}"></button>
-    </div>
-  </div>
-  <section class="product-detail">
-    <span class="eyebrow">OFERTA iPHONE EXPRESS</span><h1>${esc(p.name)}</h1><p class="storage large">${esc(p.storage)}</p>
-    <div class="old">Referência de mercado: ${money(p.referencePrice)}</div><div class="detail-price">${money(p.price)}</div>
-    <div class="color-box"><label for="color"><strong>Escolha a cor</strong><span>Conforme disponibilidade</span></label><select id="color">${colors.map((c,i)=>`<option value="${esc(c)}" ${i===0?'selected':''}>${esc(c)}</option>`).join('')}</select><small>A cor selecionada será registrada no pedido. A disponibilidade é confirmada no processamento.</small></div>
-    <div class="included"><span>✓ Frete grátis</span><span>✓ Entrega Full em até 7 dias úteis</span><span>✓ Desconto de 30%</span><span>✓ Pagamento via Pix</span></div>
-    <p class="desc">Escolha seu aparelho e a cor desejada. Depois informe os dados de entrega e siga para o pagamento.</p>
-    <a class="buy large-buy" id="continueBuy" href="checkout.html?id=${encodeURIComponent(p.id)}">Continuar para dados de entrega →</a>
-    <div class="delivery-note"><strong>🚚 Entrega Full</strong><br>Prazo de entrega: <strong>até 7 dias úteis</strong>.</div>
-    <div class="secure">🔒 O preço do Pix é conferido pelo servidor e não é alterado pelo navegador.</div>
-  </section>`;
-  document.querySelectorAll('.thumbs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.thumbs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');const src=b.dataset.src||`${base}-${b.dataset.view}.svg`;$('mainImage').src=src;}));
-  $('continueBuy').addEventListener('click',e=>{e.preventDefault();const color=$('color').value;location.href=`checkout.html?id=${encodeURIComponent(p.id)}&color=${encodeURIComponent(color)}`;});
+ let p=fallbackProduct();try{const d=await api('/api/products');p=(d.products||[]).find(x=>x.id===id)||p;}catch{}
+ if(!p)throw new Error('Produto não encontrado.');
+ const imgs=gallery(p), cs=colors(p), base=`assets/products/${p.id}`;
+ $("detail").innerHTML=`
+ <div class="gallery">
+  <div class="main-photo"><span class="sale big">30% OFF</span><img id="mainImage" src="${imgs[0]}" alt="${esc(p.name)} ${esc(p.storage)}" onerror="this.onerror=null;this.src='${base}-front.svg'"></div>
+  <div class="photo-source">Fotos oficiais/referências do modelo. A cor/estoque final depende da disponibilidade.</div>
+  <div class="thumbs">${imgs.slice(0,3).map((src,i)=>`<button class="photo-thumb ${i===0?'active':''}" data-src="${src}"><span>${['Frente / conjunto','Traseira / cores','Detalhe / lateral'][i]}</span><img src="${src}" alt="${esc(p.name)}" onerror="this.onerror=null;this.src='${base}-front.svg'"></button>`).join('')}</div>
+ </div>
+ <section class="product-detail">
+  <span class="eyebrow">OFERTA iPHONE EXPRESS</span><h1>${esc(p.name)}</h1><p class="storage large">${esc(p.storage)}</p>
+  <div class="trust-badges"><span>✓ NOVO</span><span>✓ TESTADO</span><span>✓ 30% OFF</span></div>
+  <div class="old">Referência de mercado: ${money(p.referencePrice)}</div><div class="detail-price">${money(p.price)}</div>
+  <div class="color-box"><label><strong>Escolha a cor</strong><span>Conforme disponibilidade</span></label><div class="color-options" id="colorOptions">${cs.map((c,i)=>`<button type="button" class="color-option ${i===0?'selected':''}" data-color="${esc(c)}"><i style="background:${colorHex(c)}"></i><span>${esc(c)}</span></button>`).join('')}</div><div class="selected-color"><span>Cor selecionada</span><strong id="selectedColor">${esc(cs[0])}</strong></div><small>A opção marcada será registrada no pedido. A disponibilidade da cor será confirmada no processamento.</small></div>
+  <div class="included"><span>✓ Frete grátis</span><span>✓ Entrega Full — até 7 dias úteis</span><span>✓ Produto novo e testado</span><span>✓ Pagamento via Pix</span></div>
+  <p class="desc">Escolha o aparelho e marque a cor desejada. Depois informe os dados de entrega e siga para o pagamento.</p>
+  <a class="buy large-buy" id="continueBuy" href="checkout.html?id=${encodeURIComponent(p.id)}">Continuar para dados de entrega →</a>
+  <div class="delivery-note"><strong>🚚 Entrega Full</strong><br>Prazo informado na loja: <strong>até 7 dias úteis</strong>.</div>
+  <div class="secure">🔒 O preço do Pix é conferido pelo servidor e não é alterado pelo navegador.</div>
+ </section>`;
+ document.querySelectorAll('.photo-thumb').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.photo-thumb').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('mainImage').src=b.dataset.src;}));
+ let selected=cs[0];
+ document.querySelectorAll('.color-option').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.color-option').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selected=b.dataset.color;$('selectedColor').textContent=selected;}));
+ $('continueBuy').addEventListener('click',e=>{e.preventDefault();location.href=`checkout.html?id=${encodeURIComponent(p.id)}&color=${encodeURIComponent(selected)}`;});
 }catch(e){$("detail").innerHTML=`<div class="empty">${esc(e.message)}</div>`;}})();

@@ -14,3 +14,17 @@
 @media(max-width:700px){.gallery .main-photo{min-height:330px;padding:15px}.gallery .main-photo img{max-height:310px}.photo-thumb img{height:70px}}
 
 .color-box{margin:20px 0;padding:16px;border:1px solid #e5e7eb;border-radius:16px;background:#f8fafc}.color-box label{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px}.color-box label span{font-size:12px;color:#667085;font-weight:700}.color-box select{width:100%;padding:13px;border:1px solid #cfd6df;border-radius:11px;background:#fff;font-size:16px;font-weight:700}.color-box small{display:block;margin-top:8px;color:#667085;line-height:1.4}.delivery-note,.delivery-box{margin-top:16px;padding:14px 16px;border-radius:14px;background:#eaf7ff;border:1px solid #cfe9ff;color:#164e63;line-height:1.5}.selected-color{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin:12px 0;border-radius:12px;background:#f5f7fb}.selected-color span{color:#667085}.selected-color strong{color:#111827}@media(max-width:680px){.color-box label{align-items:flex-start;flex-direction:column;gap:4px}.color-box select{font-size:16px}}
+
+/* v7: seletor de cor e indicadores de confiança */
+.color-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.color-option{display:flex;align-items:center;gap:9px;text-align:left;padding:11px;border:1px solid #d8dee8;border-radius:12px;background:#fff;cursor:pointer;font-weight:800}
+.color-option i{width:23px;height:23px;border-radius:50%;border:1px solid #c9ced6;box-shadow:inset 0 0 0 2px #fff;flex:none}
+.color-option.selected{border-color:#1677ff;box-shadow:0 0 0 2px #1677ff33;background:#eef5ff}
+.trust-badges{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+.trust-badges span{padding:7px 9px;border-radius:999px;background:#e8fff1;color:#087443;font-size:11px;font-weight:900}
+.photo-source{font-size:11px;color:#667085;margin:8px 2px 0}
+.photo-thumb{border:1px solid #ddd;background:#fff;border-radius:14px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:5px;align-items:center;transition:.18s}
+.photo-thumb.active{border-color:#1677ff;box-shadow:0 0 0 2px #1677ff33}
+.photo-thumb span{font-size:11px;font-weight:800;color:#555;text-transform:uppercase}
+.photo-thumb img{width:100%;height:90px;object-fit:contain;background:#f5f5f7;border-radius:9px}
+@media(max-width:680px){.color-options{grid-template-columns:1fr}.photo-thumb img{height:70px}}
