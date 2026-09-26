@@ -1,4 +1,3 @@
-const API_BASE_URL="https://milho-flakes.onrender.com";
 const $=id=>document.getElementById(id);
 const money=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const id=new URLSearchParams(location.search).get('id');
